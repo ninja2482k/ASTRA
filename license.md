@@ -1,6 +1,6 @@
 <h1 style="text-align: center;">Algorithmic Simulation for Trading & Risk Analysis (ASTRA)</h1>
 
-Copyright (c) 2025 Calvin Fernandes
+Copyright (c) 2026 Calvin Fernandes
 
 Permission is hereby granted to use this software subject to the following terms and conditions:
 
