@@ -4,5 +4,5 @@ from rich.console import Console
 console = Console()
 
 console.clear()
-print("Starting backtest test...")
+print("Settings")
 time.sleep(2)
