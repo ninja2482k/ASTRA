@@ -44,7 +44,7 @@ while True:
 
 
     if choice == "1":
-        subprocess.run([sys.executable, "start_backtest.py"])
+        subprocess.run([sys.executable, "backtest.py"])
         break
 
     elif choice == "2":
@@ -52,7 +52,7 @@ while True:
         break
 
     elif choice == "3":
-        subprocess.run([sys.executable, "view_results.py"])
+        subprocess.run([sys.executable, "results.py"])
         break
 
     elif choice == "4":
