@@ -3,3 +3,4 @@
 
 to do list 
 add comment in the code 
+the error handling can be better on the backtesting.py in # Timeframe and # Dates
