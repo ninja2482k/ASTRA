@@ -5,6 +5,7 @@ import time
 import yfinance as yf
 import pyfiglet
 from rich.console import Console
+from rich.progress import Progress
 
 console = Console()
 
@@ -62,11 +63,11 @@ print("1. 1m   2. 5m   3. 15m   4. 1h   5. 1d")
 timeframe_choice = int(input("Choose [1-5]: ") or "5")
 
 timeframes = {
-    "1": "1m",
-    "2": "5m",
-    "3": "15m",
-    "4": "1h",
-    "5": "1d"
+    1: "1m",
+    2: "5m",
+    3: "15m",
+    4: "1h",
+    5: "1d"
 }
 
 timeframe = timeframes.get(timeframe_choice)
@@ -178,3 +179,59 @@ print(f"Show Chart:          {'Yes' if show_chart else 'No'}")
 print(f"Save Results:        {'Yes' if save_results else 'No'}")
 
 print("======================================")
+
+confirm = input("\nStart backtest? [Y/N]: ").upper() or "Y"
+
+if confirm != "Y":
+    print("Backtest cancelled.")
+    exit()
+
+#MARKET DATA
+print()
+print("Data Source")
+print("1. Yahoo Finance")
+
+print()
+data_source = input("Choose [1]: ") or "1"
+
+while data_source != "1":
+    print()
+    print("Invalid choice.")
+    data_source = input("Choose [1]: ") or "1"
+
+print("========== MARKET DATA ==========")
+
+print(f"Symbol:    {symbol}")
+print(f"Timeframe: {timeframe}")
+print(f"Start:     {start_date or 'All available'}")
+print(f"End:       {end_date or 'Latest'}")
+
+download = input("\nDownload market data? [Y/N]: ").upper() or "Y"
+
+with Progress() as progress:
+
+    print()
+    task = progress.add_task(
+        "[cyan]Downloading market data...",
+        total=100
+    )
+
+    data = yf.download(
+        symbol,
+        start=start_date or None,
+        end=end_date or None,
+        interval=timeframe,
+        auto_adjust=False,
+        progress=False
+    )
+
+    progress.update(task, completed=100)
+
+os.makedirs("data", exist_ok=True)
+
+file_path = f"data/{symbol}_{timeframe}.csv"
+
+data.to_csv(file_path)
+
+print()
+print(" Market data saved")
