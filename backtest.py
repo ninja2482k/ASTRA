@@ -11,6 +11,7 @@ import yfinance as yf
 
 from rich.console import Console
 from rich.progress import Progress
+from datetime import datetime
 
 console = Console()
 
@@ -185,7 +186,7 @@ print(f"Save Results:        {'Yes' if save_results else 'No'}")
 
 print("======================================")
 
-confirm = input("\nStart backtest? [Y/N]: ").upper() or "Y"
+confirm = input("continue [Y/N]: ").upper() or "Y"
 
 if confirm != "Y":
     print("Backtest cancelled.")
@@ -246,7 +247,11 @@ file_path = f"data/{symbol}_{timeframe}.csv"
 data.to_csv(file_path)
 
 print()
-print(" Market data saved")
+print("Market data saved")
+print()
+
+confirm = input("Start backtest? [Y/N]: ").upper() or "Y"
+print()
 
 # Backtesting engine
 
@@ -270,4 +275,111 @@ cerebro.addstrategy(strategy_class)
 
 cerebro.broker.setcash(starting_capital)
 
+class PortfolioValueAnalyzer(bt.Analyzer):
+
+    def start(self):
+        self.values = []
+
+    def next(self):
+        self.values.append(self.strategy.broker.getvalue())
+
+    def stop(self):
+        self.rets['highest_value'] = max(self.values)
+        self.rets['lowest_value'] = min(self.values)
+
+cerebro.addanalyzer(bt.analyzers.TradeAnalyzer, _name="trades")
+cerebro.addanalyzer(bt.analyzers.DrawDown, _name="drawdown")
+cerebro.addanalyzer(PortfolioValueAnalyzer, _name="portfolio")
+
 results = cerebro.run()
+
+ending_value = cerebro.broker.getvalue()
+
+trade_analysis = results[0].analyzers.trades.get_analysis()
+
+number_of_trades = trade_analysis.total.closed
+
+winning_trades = trade_analysis.won.total
+losing_trades = trade_analysis.lost.total
+
+win_rate = (winning_trades / number_of_trades) * 100
+
+gross_profit = trade_analysis.won.pnl.total
+gross_loss = trade_analysis.lost.pnl.total
+
+average_winning_trade = trade_analysis.won.pnl.average
+average_losing_trade = trade_analysis.lost.pnl.average
+
+profit_factor = gross_profit / abs(gross_loss)
+
+total_net_profit = trade_analysis.pnl.net.total
+
+average_profit_loss = trade_analysis.pnl.net.average
+
+drawdown_analysis = results[0].analyzers.drawdown.get_analysis()
+maximum_drawdown = drawdown_analysis.max.drawdown
+
+average_trade_duration = trade_analysis.len.average
+
+start = data.index.min()
+end = data.index.max()
+
+days = (end - start).days
+weeks = days / 7
+
+trade_frequency = number_of_trades / weeks
+
+portfolio_analysis = results[0].analyzers.portfolio.get_analysis()
+highest_value = portfolio_analysis['highest_value']
+lowest_value = portfolio_analysis['lowest_value']
+
+roi = ((ending_value - starting_capital) / starting_capital) * 100
+
+
+print()
+print("=" * 60)
+print("                 ASTRA BACKTEST RESULTS")
+print("=" * 60)
+
+print()
+print("PERFORMANCE")
+print("-" * 60)
+print(f"{'Number of Trades':<30} {number_of_trades:>15}")
+print(f"{'Winning Trades':<30} {winning_trades:>15}")
+print(f"{'Losing Trades':<30} {losing_trades:>15}")
+print(f"{'Win Rate':<30} {win_rate:>14.2f}%")
+
+print()
+print("PROFITABILITY")
+print("-" * 60)
+print(f"{'Gross Profit':<30} {gross_profit:>15.2f}")
+print(f"{'Gross Loss':<30} {gross_loss:>15.2f}")
+print(f"{'Profit Factor':<30} {profit_factor:>15.2f}")
+print(f"{'Total Net Profit':<30} {total_net_profit:>15.2f}")
+print(f"{'Average Profit/Loss':<30} {average_profit_loss:>15.2f}")
+print(f"{'ROI':<30} {roi:>14.2f}%")
+
+print()
+print("TRADE ANALYSIS")
+print("-" * 60)
+print(f"{'Average Winning Trade':<30} {average_winning_trade:>15.2f}")
+print(f"{'Average Losing Trade':<30} {average_losing_trade:>15.2f}")
+print(f"{'Average Trade Duration':<30} {average_trade_duration:>12.2f} bars")
+print(f"{'Trade Frequency':<30} {trade_frequency:>10.2f} trades/week")
+
+print()
+print("ACCOUNT PERFORMANCE")
+print("-" * 60)
+print(f"{'Starting Capital':<30} {starting_capital:>15.2f}")
+print(f"{'Highest Account Value':<30} {highest_value:>15.2f}")
+print(f"{'Lowest Account Value':<30} {lowest_value:>15.2f}")
+print(f"{'Maximum Drawdown':<30} {maximum_drawdown:>14.2f}%")
+print(f"{'Ending Account Value':<30} {ending_value:>15.2f}")
+
+print()
+print("=" * 60)
+print("                   BACKTEST COMPLETE")
+print("=" * 60)
+print()
+
+# Save results
