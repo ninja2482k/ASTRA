@@ -2,8 +2,13 @@
 import os
 import shutil
 import time
-import yfinance as yf
 import pyfiglet
+import importlib
+
+import backtrader as bt
+import pandas as pd
+import yfinance as yf
+
 from rich.console import Console
 from rich.progress import Progress
 
@@ -206,7 +211,7 @@ print(f"Timeframe: {timeframe}")
 print(f"Start:     {start_date or 'All available'}")
 print(f"End:       {end_date or 'Latest'}")
 
-download = input("\nDownload market data? [Y/N]: ").upper() or "Y"
+download = input("Download market data? [Y/N]: ").upper() or "Y"
 
 with Progress() as progress:
 
@@ -225,6 +230,13 @@ with Progress() as progress:
         progress=False
     )
 
+    # formatting data 
+    if isinstance(data.columns, pd.MultiIndex):
+        data.columns = data.columns.get_level_values(0)
+
+    # Make column names standard for Backtrader
+    data.columns = [column.lower() for column in data.columns]
+
     progress.update(task, completed=100)
 
 os.makedirs("data", exist_ok=True)
@@ -235,3 +247,27 @@ data.to_csv(file_path)
 
 print()
 print(" Market data saved")
+
+# Backtesting engine
+
+cerebro = bt.Cerebro()
+
+data_feed = bt.feeds.PandasData(dataname=data)
+
+cerebro.adddata(data_feed)
+
+strategy_module = importlib.import_module(f"strategies.{strategy}")
+
+strategy_class = next(
+    obj
+    for obj in vars(strategy_module).values()
+    if isinstance(obj, type)
+    and issubclass(obj, bt.Strategy)
+    and obj is not bt.Strategy
+)
+
+cerebro.addstrategy(strategy_class)
+
+cerebro.broker.setcash(starting_capital)
+
+results = cerebro.run()
