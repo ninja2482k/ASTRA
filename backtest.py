@@ -383,3 +383,59 @@ print("=" * 60)
 print()
 
 # Save results
+
+if save_results == "Y":
+
+    os.makedirs("results", exist_ok=True)
+
+    result_file = f"results/{symbol}_{timeframe}_results.txt"
+
+    with open(result_file, "w") as file:
+
+        file.write("=" * 60 + "\n")
+        file.write("                 ASTRA BACKTEST RESULTS\n")
+        file.write("=" * 60 + "\n\n")
+
+        file.write("PERFORMANCE\n")
+        file.write("-" * 60 + "\n")
+        file.write(f"{'Number of Trades':<30} {number_of_trades:>15}\n")
+        file.write(f"{'Winning Trades':<30} {winning_trades:>15}\n")
+        file.write(f"{'Losing Trades':<30} {losing_trades:>15}\n")
+        file.write(f"{'Win Rate':<30} {win_rate:>14.2f}%\n\n")
+
+        file.write("PROFITABILITY\n")
+        file.write("-" * 60 + "\n")
+        file.write(f"{'Gross Profit':<30} {gross_profit:>15.2f}\n")
+        file.write(f"{'Gross Loss':<30} {gross_loss:>15.2f}\n")
+        file.write(f"{'Profit Factor':<30} {profit_factor:>15.2f}\n")
+        file.write(f"{'Total Net Profit':<30} {total_net_profit:>15.2f}\n")
+        file.write(f"{'Average Profit/Loss':<30} {average_profit_loss:>15.2f}\n")
+        file.write(f"{'ROI':<30} {roi:>14.2f}%\n\n")
+
+        file.write("TRADE ANALYSIS\n")
+        file.write("-" * 60 + "\n")
+        file.write(f"{'Average Winning Trade':<30} {average_winning_trade:>15.2f}\n")
+        file.write(f"{'Average Losing Trade':<30} {average_losing_trade:>15.2f}\n")
+        file.write(f"{'Average Trade Duration':<30} {average_trade_duration:>12.2f} bars\n")
+        file.write(f"{'Trade Frequency':<30} {trade_frequency:>10.2f} trades/week\n\n")
+
+        file.write("ACCOUNT PERFORMANCE\n")
+        file.write("-" * 60 + "\n")
+        file.write(f"{'Starting Capital':<30} {starting_capital:>15.2f}\n")
+        file.write(f"{'Highest Account Value':<30} {highest_value:>15.2f}\n")
+        file.write(f"{'Lowest Account Value':<30} {lowest_value:>15.2f}\n")
+        file.write(f"{'Maximum Drawdown':<30} {maximum_drawdown:>14.2f}%\n")
+        file.write(f"{'Ending Account Value':<30} {ending_value:>15.2f}\n")
+        file.write(f"{'ROI':<30} {roi:>14.2f}%\n")
+
+        file.write("\n")
+        file.write("=" * 60 + "\n")
+        file.write("                   BACKTEST COMPLETE\n")
+        file.write("=" * 60 + "\n")
+
+    print()
+    print("=" * 60)
+    print("                 RESULTS SAVED")
+    print("=" * 60)
+    print(f"File: {result_file}")
+    print()
