@@ -434,8 +434,10 @@ if save_results == "Y":
         file.write("=" * 60 + "\n")
 
     print()
-    print("=" * 60)
-    print("                 RESULTS SAVED")
-    print("=" * 60)
-    print(f"File: {result_file}")
+
+    print("RESULTS SAVED")
+
     print()
+
+    print(f"File: {result_file}")
+
