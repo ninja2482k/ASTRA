@@ -5,13 +5,18 @@ import time
 import pyfiglet
 import importlib
 
+
 import backtrader as bt
 import pandas as pd
 import yfinance as yf
+import matplotlib.pyplot as plt
+import pandas as pd
+
 
 from rich.console import Console
 from rich.progress import Progress
 from datetime import datetime
+
 
 console = Console()
 
@@ -279,13 +284,17 @@ class PortfolioValueAnalyzer(bt.Analyzer):
 
     def start(self):
         self.values = []
+        self.dates = []
 
     def next(self):
         self.values.append(self.strategy.broker.getvalue())
+        self.dates.append(self.strategy.datetime.datetime(0))
 
     def stop(self):
         self.rets['highest_value'] = max(self.values)
         self.rets['lowest_value'] = min(self.values)
+        self.rets['values'] = self.values
+        self.rets['dates'] = self.dates
 
 cerebro.addanalyzer(bt.analyzers.TradeAnalyzer, _name="trades")
 cerebro.addanalyzer(bt.analyzers.DrawDown, _name="drawdown")
@@ -330,8 +339,12 @@ weeks = days / 7
 trade_frequency = number_of_trades / weeks
 
 portfolio_analysis = results[0].analyzers.portfolio.get_analysis()
+
 highest_value = portfolio_analysis['highest_value']
 lowest_value = portfolio_analysis['lowest_value']
+
+equity_values = portfolio_analysis['values']
+equity_dates = portfolio_analysis['dates']
 
 roi = ((ending_value - starting_capital) / starting_capital) * 100
 
@@ -433,11 +446,51 @@ if save_results == "Y":
         file.write("                   BACKTEST COMPLETE\n")
         file.write("=" * 60 + "\n")
 
-    print()
+     
+        equity_data = pd.DataFrame({
+        "Date": equity_dates,
+        "Account Value": equity_values})
 
-    print("RESULTS SAVED")
+        equity_file = f"results/{symbol}_{timeframe}_equity.csv"
 
-    print()
+        equity_data.to_csv(equity_file, index=False)
 
-    print(f"File: {result_file}")
 
+        print(f"Equity data saved to: {equity_file}")
+        print()
+
+        print("RESULTS SAVED")
+
+        print()
+
+        print(f"File: {result_file}")
+
+print()
+
+if show_chart == "Y":
+
+    # Load equity data
+    equity_data = pd.read_csv(f"results/{symbol}_{timeframe}_equity.csv") #dont hard code the file name, use the symbol and timeframe variables instead
+
+    # Convert dates to datetime
+    equity_data["Date"] = pd.to_datetime(equity_data["Date"])
+
+    # Create equity curve
+    plt.figure(figsize=(12, 6))
+
+    plt.plot(
+    equity_data["Date"],
+    equity_data["Account Value"]
+    )
+
+    plt.title("ASTRA - Equity Curve")
+    plt.xlabel("Date")
+    plt.ylabel("Account Value")
+
+    plt.grid(True)
+    plt.tight_layout()
+
+    print("Displaying equity curve chart...")
+    time.sleep(1)
+
+    plt.show()
